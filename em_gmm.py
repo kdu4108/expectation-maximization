@@ -48,14 +48,14 @@ def m_step(mu_hats, data, q_est, gamma_iks):
 
     :return updated mu_hats, var_hats, and pi_hats for all k.
     """
-    gamma_ks = np.sum(gamma_iks, axis=0)
+    gamma_ks = np.sum(gamma_iks, axis=0) # shape is (k,)
     # print(gamma_iks)
     print("gamma_ks", gamma_ks.shape, gamma_ks)
-    updated_pi_hats = np.sum(gamma_iks, axis=0)/len(data)
+    updated_pi_hats = gamma_ks/len(data)
     print("updated_pi_hats", updated_pi_hats.shape, updated_pi_hats)
     updated_mu_hats = np.matmul(gamma_iks.T, data)/gamma_ks
     print("updated_mu_hats", updated_mu_hats.shape, updated_mu_hats)
-    updated_var_hats = np.power(np.sum(gamma_iks * np.power(np.expand_dims(data, axis=0).T - updated_mu_hats, 2), axis=0)/gamma_ks, 2)
+    updated_var_hats = np.square(np.sum(gamma_iks * np.square(np.expand_dims(data, axis=0).T - updated_mu_hats), axis=0)/gamma_ks)
     print("updated_var_hats", updated_var_hats.shape, updated_var_hats)
 
     return updated_mu_hats, updated_var_hats, updated_pi_hats
@@ -68,17 +68,18 @@ def get_true_params(num_k):
     :return (mus, variances, pis), where each element is a list of k values 
     (e.g. mus is list of mu for each of the k mixtures).
     """
-    # np.random.seed(2)
-    # mus = np.random.randint(5, size=num_k)
-    stop = 15
-    mus = np.arange(start=0, stop=stop, step=stop/num_k)
-    variances = np.random.randint(1, 4, size=num_k)
-    pis = np.random.random(num_k)
-    pis /= pis.sum()
-
-    assert(sum(pis) == 1)
-
+    np.random.seed(2)
     return np.array([5, 15]), np.square(np.array([1.5, 2])), np.array([0.25, 0.75])
+
+    # mus = np.random.randint(5, size=num_k)
+    # stop = 15
+    # mus = np.arange(start=0, stop=stop, step=stop/num_k)
+    # variances = np.random.randint(1, 4, size=num_k)
+    # pis = np.random.random(num_k)
+    # pis /= pis.sum()
+
+    # assert(sum(pis) == 1)
+
     # return mus, variances, pis
 
 def gen_data(n, mus, variances, pis):
@@ -109,7 +110,7 @@ def main():
     num_k = 2
     mus, variances, pis = get_true_params(num_k)
     assert(num_k == len(mus))
-    # print(mus, variances, pis)
+    print("True params:", mus, variances, pis)
 
     n = 100
     data = gen_data(n, mus, variances, pis)
