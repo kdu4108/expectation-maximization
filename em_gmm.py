@@ -136,19 +136,40 @@ def main():
     print(f"Final var_hats: {var_hats}")
     print(f"Final pi_hats: {pi_hats}")
 
-def run_tests():
-    # M-step
-    print(m_step([1, 2], [1,2,3,4,5], 10, np.arange(10).reshape(5,2)))
-
+def test_m_step():
+    mu_hats = [1, 2]
+    data = [1,2,3,4,5]
+    q_est = 10
+    gamma_iks = np.arange(10).reshape(5,2)
     # new_mu_hats
-    assert(np.all(m_step([1, 2], [1,2,3,4,5], 10, np.arange(10).reshape(5,2))[0] == np.array([4, 3.8])))
+    assert(np.all(m_step(mu_hats, data, q_est, gamma_iks)[0] == np.array([4, 3.8])))
     
     # new_var_hats, given updated_mu_hats = [4, 3.8]
-    assert(np.all(np.isclose(m_step([1, 2], [1,2,3,4,5], 10, np.arange(10).reshape(5,2))[1], np.array([1.0, 1.8496]))))
+    assert(np.all(np.isclose(m_step(mu_hats, data, q_est, gamma_iks)[1], np.array([1.0, 1.8496]))))
 
     # new_pi_hats
-    assert(np.all(m_step([1, 2], [1,2,3,4,5], 10, np.arange(10).reshape(5,2))[2] == np.array([4, 5])))
+    assert(np.all(m_step(mu_hats, data, q_est, gamma_iks)[2] == np.array([4, 5])))
 
+def test_gamma_ik():
+    data = [1,2,3,4,5]
+    pi_hats = [0.25, 0.75]
+    mu_hats = [0, 5]
+    var_hats = [2, 3]
+    gamma_iks = []
+    for k in range(len(mu_hats)):
+        gamma_i = ss.norm.pdf(data, loc=mu_hats[k], scale=np.sqrt(var_hats[k])) * pi_hats[k]
+        gamma_iks.append(gamma_i)
+
+    gamma_iks = np.array(gamma_iks)
+    gamma_iks = (gamma_iks/np.sum(gamma_iks, axis=0)).T    
+
+    assert(np.all(gamma_ik(mu_hats, var_hats, pi_hats, data) == gamma_iks))
+
+
+def run_tests():
+    test_gamma_ik()
+    test_m_step()
+    
 if __name__ == "__main__":
     run_tests()
     main()
